@@ -1,6 +1,8 @@
 const express = require("express")
 const cors = require("cors")
 const mongoose = require('mongoose')
+const uniqueValidator = require('mongoose-unique-validator').default
+const bcrypt = require('bcrypt')
 
 const app = express()
 app.use(express.json())
@@ -10,6 +12,13 @@ const Filme = mongoose.model("Filme", mongoose.Schema({
     titulo: {type: String},
     sinopse: {type: String}
 }))
+
+const usuarioSchema = mongoose.Schema ({
+    login: {type: String, required: true, unique: true},
+    password: {type: String, required: true}
+})
+usuarioSchema.plugin(uniqueValidator)
+const Usuario = mongoose.model("Usuario", usuarioSchema)
 
 async function conectarAoMongo () {
     await mongoose.connect(`mongodb+srv://andreiamachion_db_user:mongo123@cluster0.d7majmq.mongodb.net/`)
@@ -49,10 +58,29 @@ app.post('/filmes', async (req, res) => {
     const filmes = await (Filme.find())
     res.json(filmes)
 })
-
-app.listen(3000, () => {
+//post: http://localhost:3000/signup
+app.post('/signup', async (req, res) => {
     try {
-        conectarAoMongo();
+        const login = req.body.login
+        const password = req.body.password
+        const passCriptografado = await bcrypt.hash(password, 10)
+        const usuario = new Usuario ({
+            login: login,
+            password: passCriptografado
+        })
+        const respostaMongo = await usuario.save()
+        console.log(respostaMongo)
+        res.status(201).end()
+    }
+    catch (e) {
+        console.log(e)
+        res.status(409).end()
+    }
+})
+
+app.listen(3000, async () => {
+    try {
+        await conectarAoMongo();
         console.log ("server up & running & Mongo connected")
     }
     catch (e) {
