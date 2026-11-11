@@ -8,7 +8,7 @@ async function obterFilmes() {
     //console.log (filmes)
     let tabela = document.querySelector('.filmes')
     let corpoTabela = tabela.getElementsByTagName('tbody')[0]
-    for (let filme of filmes){
+    for (let filme of filmes) {
         let linha = corpoTabela.insertRow(0)
         let celulaTitulo = linha.insertCell(0)
         let celulaSinopse = linha.insertCell(1)
@@ -27,11 +27,11 @@ async function cadastrarFilme() {
     if (titulo && sinopse) {
         tituloInput.value = ""
         sinopseInput.value = ""
-        const filmes = (await axios.post(URLCompleta, {titulo, sinopse})).data
+        const filmes = (await axios.post(URLCompleta, { titulo, sinopse })).data
         let tabela = document.querySelector(".filmes")
         let corpoTabela = tabela.getElementsByTagName('tbody')[0]
         corpoTabela.innerHTML = ""
-        for (let filme of filmes){
+        for (let filme of filmes) {
             let linha = corpoTabela.insertRow(0)
             let celulaTitulo = linha.insertCell(0)
             let celulaSinopse = linha.insertCell(1)
@@ -40,13 +40,7 @@ async function cadastrarFilme() {
         }
     }
     else {
-        let alert = document.querySelector('.alert-cadastro-filme')
-        alert.classList.add('show')
-        alert.classList.remove('d-none')
-        setTimeout (() => {
-            alert.classList.add('d-none')
-            alert.classList.remove('show')
-        }, 2000)
+        exibirAlerta ('.alert-cadastro-filme', "Preencha todos os campos", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
     }
 }
 
@@ -56,16 +50,52 @@ async function cadastrarUsuario() {
     let usuarioInput = usuarioCadastroInput.value
     let passwordInput = passwordCadastroInput.value
     if (usuarioInput && passwordInput) {
-        //chama o back
+        try {
+            const cadastroEndpoint = '/signup'
+            const URLCompleta = `${protocolo}${baseURL}${cadastroEndpoint}`
+            usuarioCadastroInput.value = ''
+            passwordCadastroInput.value = ''
+            await axios.post (URLCompleta, {login: usuarioInput, password: passwordInput})
+            exibirAlerta('.alert-modal-cadastro', "Usuário cadastrado com sucesso", ['show', 'alert-success'], ['d-none', 'alert-danger'], 2000) 
+            esconderModal ('#modalCadastro', 2000)
+        }
+        catch (e) {
+            exibirAlerta ('.alert-modal-cadastro', "Falha no cadastro do usuário", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
+            esconderModal ('#modalCadastro', 2000)
+        }
     }
     else {
-        let alert = document.querySelector('.alert-modal-cadastro')
-        alert.innerHTML = "Preencha todos os campos"
-        alert.classList.add('show', 'alert-danger')
-        alert.classList.remove('d-none')
-        setTimeout (() => {
-            alert.classList.add('d-none')
-            alert.classList.remove('show', 'alert-danger')
-        }, 2000)
+        exibirAlerta ('.alert-modal-cadastro', "Preencha todos os campos", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
+    }
+}
+
+function exibirAlerta (seletor, innerHTML, classesToAdd, classesToRemove, timeout) {
+    let alert = document.querySelector(seletor)
+    alert.innerHTML = innerHTML
+    alert.classList.add(...classesToAdd)
+    alert.classList.remove(...classesToRemove)
+    setTimeout(() => {
+        alert.classList.add('d-none')
+        alert.classList.remove('show')
+    }, timeout)
+}
+
+function esconderModal (seletor, timeout) {
+    setTimeout(() => {
+        let modal = bootstrap.Modal.getInstance(document.querySelector(seletor))
+        modal.hide()
+    }, timeout)
+}
+
+const fazerLogin = async() => {
+    let usuarioLoginInput = document.querySelector('#usuarioLoginInput')
+    let passwordLoginInput = document.querySelector('#passwordLoginInput')
+    let usuarioLogin = usuarioLoginInput.value
+    let passwordLogin = passwordLoginInput.value
+    if (usuarioLogin && passwordLogin) {
+
+    } 
+    else {
+        exibirAlerta ('.alert-modal-login', "Preencha todos os campos", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
     }
 }
