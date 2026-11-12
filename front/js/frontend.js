@@ -86,16 +86,61 @@ function esconderModal (seletor, timeout) {
         modal.hide()
     }, timeout)
 }
-
+// mantém como era
 const fazerLogin = async() => {
     let usuarioLoginInput = document.querySelector('#usuarioLoginInput')
     let passwordLoginInput = document.querySelector('#passwordLoginInput')
     let usuarioLogin = usuarioLoginInput.value
     let passwordLogin = passwordLoginInput.value
     if (usuarioLogin && passwordLogin) {
-
+        try {
+            const loginEndpoint = '/login'
+            const URLCompleta = `${protocolo}${baseURL}${loginEndpoint}`
+            const response = await axios.post (URLCompleta, {login: usuarioLogin, password: passwordLogin})
+            localStorage.setItem ('token', response.data.token)
+            usuarioLoginInput.value = ""
+            passwordLoginInput.value = ""
+            exibirAlerta ('.alert-modal-login', "Login efetuado com sucesso!", ['show', 'alert-success'], ['d-none', 'alert-danger'], 2000)
+            esconderModal ('#modalLogin', 2000)
+            prepararPagina()
+        }
+        catch (e) {
+            exibirAlerta ('.alert-modal-login', "Erro ao fazer login", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
+        }
     } 
     else {
         exibirAlerta ('.alert-modal-login', "Preencha todos os campos", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
     }
+}
+function prepararPagina() {
+    const token = localStorage.getItem('token')
+    const loginLink = document.querySelector('#loginLink')
+    const cadastrarFilmeButton = document.querySelector('#cadastrarFilmeButton')
+    const novoUsuarioLink = document.querySelector('#novoUsuarioLink')
+    if (token) {
+        loginLink.innerHTML = "Logout"
+        cadastrarFilmeButton.disabled = false
+        novoUsuarioLink.classList.add('d-none')
+    }
+    else {
+        loginLink.innerHTML = "Login"
+        cadastrarFilmeButton.disabled = true
+        novoUsuarioLink.classList.remove('d-none')
+    }
+}
+// esta função só chama o logout e mostra o modal
+function tratarLoginLogout () {
+    const token = localStorage.getItem('token')
+    if (token) {
+        fazerLogout()
+    }
+    else {
+        const modalLogin = bootstrap.Modal.getOrCreateInstance('#modalLogin')
+        modalLogin.show()
+    }
+}
+function fazerLogout () {
+    localStorage.removeItem('token')
+    prepararPagina()
+    exibirAlerta('.alert-cadastro-filme', "Logout realizado com sucesso", ['show', 'alert-success'], ['d-none', 'alert-danger'], 2000)
 }
